@@ -18,3 +18,4 @@ CHECK (
     Usuario_Telefone LIKE '(__) _____-____'  -- Celular
 );
 
+SELECT * FROM Usuarios;
