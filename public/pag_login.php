@@ -12,7 +12,7 @@ if (isset($_POST['submit']))
       $_SESSION['Email'] = $_POST['usuario'];
       $_SESSION['senha'] = $_POST['senha'];
 
-      $sql = "SELECT Usuario_ID, Usuario_Email, Usuario_Senha FROM Usuarios WHERE Usuario_Email = '$_SESSION[Email]'";
+      $sql = "SELECT Usuario_ID, Usuario_Email, Usuario_Nome, Usuario_Senha, Usuario_img_Perfil FROM Usuarios WHERE Usuario_Email = '$_SESSION[Email]'";
       $stmt = sqlsrv_query($conn, $sql);
 
       if ($stmt === false)
@@ -33,7 +33,9 @@ if (isset($_POST['submit']))
           if ($Dados['Usuario_Senha'] == $_SESSION['senha'])
             {
               $_SESSION['ID'] = $Dados['Usuario_ID'];
-              echo "<script>alert('Login efetuado com sucesso');location.href='pag_principal.html'; </script>";
+              $_SESSION['Nome'] = $Dados['Usuario_Nome'];
+              $_SESSION['Img_Perfil'] = $Dados['Usuario_img_Perfil'];
+              echo "<script>alert('Login efetuado com sucesso');location.href='pag_principal.php'; </script>";
             }
           else
             {
@@ -100,7 +102,7 @@ if (isset($_POST['submit']))
   <div class="container">
     <!-- Logo logo acima do "Bem-vindo!" -->
     <div class="logo-container">
-      <img src="imagens/Flyway.png" alt="Logo" class="logo">
+      <img src="imagens/2.lpg" alt="Logo" class="logo">
     </div>
 
     <div class="row align-items-center min-vh-75">
