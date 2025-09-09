@@ -3,16 +3,20 @@
 include 'config.php';
 
 if (isset($_POST['submit'])) {
+
+    $conteudoBinario = file_get_contents("imagens/Flyway.png");
+    $img = bin2hex($conteudoBinario);
+
+
     $email = $_POST['email'];
     $nome  = $_POST['nome'];
     $tel   = $_POST['tel'];
     $senha = $_POST['senha']; 
 
-    $sql = "INSERT INTO Usuarios (Usuario_Email, Usuario_Nome, Usuario_Telefone, Usuario_Senha)
-            VALUES (?, ?, ?, ?)";
-    $params = [$email, $nome, $tel, $senha];
+    $sql = "INSERT INTO Usuarios (Usuario_Email, Usuario_Nome, Usuario_Telefone, Usuario_Senha, Usuario_img_Perfil)
+        VALUES ('$email', '$nome', '$tel', '$senha', 0x$img)";
 
-    $stmt = sqlsrv_query($conn, $sql, $params);
+    $stmt = sqlsrv_query($conn, $sql);
 
     if ($stmt === false) {
         die(print_r(sqlsrv_errors(), true));

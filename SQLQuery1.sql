@@ -7,7 +7,8 @@ CREATE TABLE Usuarios
 	Usuario_Email VARCHAR(350) NOT NULL,
 	Usuario_Nome VARCHAR(40) NOT NULL,
 	Usuario_Telefone VARCHAR(20) NOT NULL,
-	Usuario_Senha VARCHAR(40 )NOT NULL
+	Usuario_Senha VARCHAR(40 )NOT NULL,
+	Usuario_img_Perfil VARBINARY(MAX)
 );
 
 ALTER TABLE Usuarios
