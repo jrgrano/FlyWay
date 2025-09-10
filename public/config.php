@@ -1,7 +1,7 @@
 <?php
 $serverName = "localhost"; // instância padrão
 $connectionOptions = [
-    "Database" => "Db_Usuarios_FlyWay",
+    "Database" => "Db_FlyWay",
     "Uid" => "sa",
     "PWD" => "" 
 ];
