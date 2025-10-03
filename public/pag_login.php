@@ -11,6 +11,7 @@ if (isset($_POST['submit']))
       session_start();
       $_SESSION['Email'] = $_POST['usuario'];
       $_SESSION['senha'] = $_POST['senha'];
+      $_SESSION['pagina'] = 0;
 
       $sql = "SELECT Usuario_ID, Usuario_Email, Usuario_Nome, Usuario_Senha, Usuario_img_Perfil FROM Usuarios WHERE Usuario_Email = '$_SESSION[Email]'";
       $stmt = sqlsrv_query($conn, $sql);

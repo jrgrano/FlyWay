@@ -7,7 +7,7 @@ $mostrarPopup_Postado = false;
 if (isset($_POST['submit']))
     {
         $titulo = $_POST['titulo'];
-        $data = date("Y-m-d H:i:s");
+        $data = date('Y-m-d H:i:s');
         $tag= $_POST['opcoes'];
         $texto = $_POST['Texto'];
         $autor = $_SESSION['ID'];
@@ -16,9 +16,11 @@ if (isset($_POST['submit']))
         $img = bin2hex($conteudoBinario);
 
         $sql = "INSERT INTO Posts (Post_Titulo, Post_Data, Post_Tag, Post_Foto, Post_Texto, Post_Usuario_KEY)
-        VALUES ('$titulo', '$data', '$tag', 0x$img, '$texto', $autor)";
+        VALUES (?, CONVERT(DATETIME, ?, 120), ?, 0x$img, ?, ?)";
 
-        $stmt = sqlsrv_query($conn, $sql);
+        $Parametros = array($titulo, $data, $tag, $texto, $autor);
+
+        $stmt = sqlsrv_query($conn, $sql, $Parametros);
 
         if ($stmt === false)
         {
