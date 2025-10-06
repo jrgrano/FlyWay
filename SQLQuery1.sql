@@ -32,7 +32,18 @@ CREATE TABLE Comentarios
 	Comentario_post_KEY INT NOT NULL,
 	FOREIGN KEY (Comentario_Usuario_KEY) REFERENCES Usuarios(Usuario_ID),
 	FOREIGN KEY (Comentario_post_KEY) REFERENCES Posts(Post_ID)
-)
+);
+
+CREATE TABLE Likes
+(
+	Like_ID int identity (1,1) PRIMARY KEY,
+	Like_UP Bit,
+	Like_Donw Bit,
+	Like_Usuario_KEY INT NOT NULL,
+	Like_Post_KEY INT NOT NULL,
+	FOREIGN KEY (Like_Usuario_KEY) REFERENCES Usuarios(Usuario_ID),
+	FOREIGN KEY (Like_Post_KEY) REFERENCES Posts(Post_ID)
+);
 
 ALTER TABLE Usuarios
 ADD CONSTRAINT CHK_Usuario_Telefone
@@ -45,73 +56,45 @@ CHECK (
 SELECT * FROM Usuarios;
 SELECT * FROM Posts;
 SELECT * FROM Comentarios;
+SELECT * FROM Likes;
 
-SELECT TOP 1
-    p.Post_ID,
-    p.Post_Titulo,
-	p.Post_Foto,
-    p.Post_Texto,
-    p.Post_Tag,
-    p.Post_Data,
-    u.Usuario_Nome,
-	u.Usuario_img_Perfil
-FROM Posts p
-INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
-ORDER BY p.Post_Data DESC;
+
+DELETE FROM Likes;
+DELETE FROM Comentarios;
+DELETE FROM Posts;
+DELETE FROM Usuarios;
+
+
+SELECT 
+    Post_ID,
+    Post_Titulo,
+    COUNT(Likes.Like_ID) AS TotalLikes
+FROM Posts
+LEFT JOIN Likes ON Posts.Post_ID = Likes.Like_Post_KEY
+WHERE Likes.Like_UP = 1
+  AND Posts.Post_ID = 1 -- Colocar o Id
+GROUP BY Post_ID, Post_Titulo;
 
 SELECT 
     p.Post_ID,
     p.Post_Titulo,
-	p.Post_Foto,
+    p.Post_Foto,
     p.Post_Texto,
-    p.Post_Tag,
-    p.Post_Data,
+	p.Post_Data,
     u.Usuario_Nome,
-	u.Usuario_img_Perfil
+    u.Usuario_img_Perfil,
+    ISNULL(SUM(CAST(l.Like_UP AS INT)), 0) AS TotalLikes,
+    ISNULL(SUM(CAST(l.Like_Donw AS INT)), 0) AS TotalDislikes
 FROM Posts p
 INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
-ORDER BY p.Post_Data DESC
-OFFSET 1 ROWS      
-FETCH NEXT 1 ROWS ONLY;
-
-TRUNCATE TABLE Posts;
-
-SELECT TOP 3 * FROM Comentarios;
-
-SELECT TOP 3
-    c.Comentario_ID,
-    c.Comentario_Texto,
-    u.Usuario_Nome,
+LEFT JOIN Likes l ON p.Post_ID = l.Like_Post_KEY
+GROUP BY 
+    p.Post_ID, 
+    p.Post_Titulo, 
+    p.Post_Foto, 
+    p.Post_Texto, 
+    u.Usuario_Nome, 
     u.Usuario_img_Perfil
-FROM Comentarios c
-INNER JOIN Usuarios u 
-    ON c.Comentario_Usuario_KEY = u.Usuario_ID
-WHERE c.Comentario_post_KEY = 9
-ORDER BY c.Comentario_ID DESC;
-
-$slq_Comentario_1 = "
-            SELECT TOP 3
-              c.Comentario_ID,
-              c.Comentario_Texto,
-              u.Usuario_Nome,
-              u.Usuario_img_Perfil
-            FROM Comentarios c
-            INNER JOIN Usuarios u 
-            ON c.Comentario_Usuario_KEY = u.Usuario_ID
-            WHERE c.Comentario_post_KEY = @PostID 
-            ORDER BY c.Comentario_ID DESC;
-           ";
-
-
-		   SELECT 
-            c.Comentario_ID,
-            c.Comentario_Texto,
-            u.Usuario_Nome,
-            u.Usuario_img_Perfil
-            FROM Comentarios c
-            INNER JOIN Usuarios u 
-            ON c.Comentario_Usuario_KEY = u.Usuario_ID
-            WHERE c.Comentario_post_KEY = 9
-            ORDER BY c.Comentario_ID DESC
-            OFFSET 0 ROWS
-            FETCH NEXT 3 ROWS ONLY;
+ORDER BY p.Post_Data DESC
+OFFSET 1 ROWS  -- aqui você coloca o offset desejado
+FETCH NEXT 1 ROW ONLY;

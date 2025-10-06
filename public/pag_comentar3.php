@@ -143,6 +143,7 @@ $_SESSION['Img_Perfil'] = null;
 <?php if ($mostrarPopup_Comentado): ?>
   <script>
       alert("comentario feito com sucesso");
+      location.href='pag_principal.php';
   </script>
 <?php endif; ?>
 </body>

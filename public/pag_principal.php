@@ -42,6 +42,9 @@ $_SESSION['Img_Perfil'] = null;
       border-radius: 8px;
       background: #000; /* cor de fundo caso haja espaço sobrando */
     }
+    html {
+    scroll-behavior: auto !important;
+    }
   </style>
 </head>
 
@@ -103,7 +106,7 @@ $_SESSION['Img_Perfil'] = null;
 
             <!-- Não entrar nas configs se não estiver logado -->
             <?php if (!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?>
-            <li><a class="dropdown-item" href="pag_login.php">Fazer login</a></li>
+            <li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li>
             <?php endif; ?>
             <?php if($_SESSION['ID'] !== null): ?>
             <li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li>
@@ -128,7 +131,7 @@ $_SESSION['Img_Perfil'] = null;
 <?php endif; ?>
 
 <?php if($_SESSION['ID'] == null): ?>
-<a href="pag_login.php" style="position: fixed; right: 20px; bottom: 20px; padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+<a href="pag_login_cadastro.php" style="position: fixed; right: 20px; bottom: 20px; padding: 10px 20px; background: #0d6efd; color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
   Fazer uma login para fazer uma postagem 
 </a>
 <?php endif; ?>
@@ -146,17 +149,29 @@ for($i=1; $i<=3; $i++)
 {
     $offset = ${"post{$i}_offset"};
     $sql = "SELECT 
-        p.Post_ID,
-        p.Post_Titulo,
-        p.Post_Foto,
-        p.Post_Texto,
-        u.Usuario_Nome,
-        u.Usuario_img_Perfil
-        FROM Posts p
-        INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
-        ORDER BY p.Post_Data DESC
-        OFFSET $offset ROWS      
-        FETCH NEXT 1 ROW ONLY;";
+    p.Post_ID,
+    p.Post_Titulo,
+    p.Post_Foto,
+    p.Post_Texto,
+    p.Post_Data,
+    u.Usuario_Nome,
+    u.Usuario_img_Perfil,
+    ISNULL(SUM(CAST(l.Like_UP AS INT)), 0) AS TotalLikes,
+    ISNULL(SUM(CAST(l.Like_Donw AS INT)), 0) AS TotalDislikes
+    FROM Posts p
+    INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
+    LEFT JOIN Likes l ON p.Post_ID = l.Like_Post_KEY
+    GROUP BY 
+    p.Post_ID,
+    p.Post_Titulo,
+    p.Post_Foto,
+    p.Post_Texto,
+    p.Post_Data,
+    u.Usuario_Nome,
+    u.Usuario_img_Perfil
+    ORDER BY p.Post_Data DESC
+    OFFSET $offset ROWS
+    FETCH NEXT 1 ROW ONLY;";
 
     $stmt = sqlsrv_query($conn, $sql);
 
@@ -172,6 +187,9 @@ for($i=1; $i<=3; $i++)
         ${"img_post$i"} = $Dados["Post_Foto"];
         ${"texto$i"} = $Dados["Post_Texto"];
         ${"mostrarPost_$i"} = true;
+
+        ${"TotaldeLikes_$i"} = $Dados["TotalLikes"];
+        ${"TotaldeDislikes_$i"} = $Dados["TotalDislikes"];
 
         $_SESSION['Post_' . $i . '_ID'] = $Dados["Post_ID"];
     }
@@ -273,7 +291,9 @@ for($i=1; $i<=3; $i++)
                 <!-- Paginação Comentários -->
                 <div style="margin-top: auto; text-align: center; padding-top: 10px;">
                     <form method="post">
+
                         <button type="submit" name="mudarComent<?= $i ?>" value="Voltar<?= $i ?>"> <- </button>
+
                         <input type="hidden" name="selc<?= $i ?>" value="<?= $selc ?>">
                         <input type="hidden" name="valorcomen<?= $i ?>" value="<?= $valorcomen ?>">
                         <?php
@@ -282,7 +302,9 @@ for($i=1; $i<=3; $i++)
                             else echo $j.' ';
                         }
                         ?>
+
                         <button type="submit" name="mudarComent<?= $i ?>" value="Passar<?= $i ?>"> -> </button>
+
                     </form>
                 </div>
 
@@ -291,9 +313,75 @@ for($i=1; $i<=3; $i++)
                     <a href="pag_comentar<?php echo $i; ?>.php">Comentar</a>
                 </form>
 
+                <?php
+                if(isset($_POST["Like$i"]))
+                {
+                  if($_POST["Like$i"] == "Up$i")
+                    {
+
+                    $LikeV = 1;
+                    $DisLikeV = 0;
+                    $UsuarioLikeV = $_SESSION['ID'];
+                    $PostLikeV = ${"post_id".$i};
+
+                    $SqlLike = "INSERT INTO Likes (Like_UP, Like_Donw, Like_Usuario_KEY, Like_Post_KEY)
+                                VALUES ('$LikeV', '$DisLikeV', '$UsuarioLikeV', $PostLikeV)";   
+                            
+                    $SmtLike = sqlsrv_query($conn, $SqlLike);
+
+
+                    if ($stmt === false)
+                      {
+                      die(print_r(sqlsrv_errors(), true));
+                      } 
+
+                      else
+                         {
+                         echo "<script>location.href='pag_principal.php'; </script>";
+                         exit();
+                         }
+                    };
+                  
+                  if($_POST["Like$i"] == "Donw$i")
+                    {
+
+                    $LikeV = 0;
+                    $DisLikeV = 1;
+                    $UsuarioLikeV = $_SESSION['ID'];
+                    $PostLikeV = ${"post_id".$i};
+
+                    $SqlLike = "INSERT INTO Likes (Like_UP, Like_Donw, Like_Usuario_KEY, Like_Post_KEY)
+                                VALUES ('$LikeV', '$DisLikeV', '$UsuarioLikeV', $PostLikeV)";   
+                            
+                    $SmtLike = sqlsrv_query($conn, $SqlLike);
+
+
+                    if ($stmt === false)
+                      {
+                      die(print_r(sqlsrv_errors(), true));
+                      } 
+
+                      else
+                         {
+                         echo "<script>location.href='pag_principal.php'; </script>";
+                         exit();
+                         }
+                    };
+                }
+                ?>
+
+                <form method="post">
                 <div style="margin-top: auto; text-align: center; padding-top: 10px;">
-                    Likes 👍: 0   Dislike 👎: 0
+                  Likes
+                  <button type="submit" name="Like<?= $i ?>" value="Up<?= $i ?>"> 👍 </button>
+                  : <?php echo ${"TotaldeLikes_$i"}; ?>
+
+                  Dislike
+                  <button type="submit" name="Like<?= $i ?>" value="Donw<?= $i ?>"> 👎 </button>
+                   : <?php echo ${"TotaldeDislikes_$i"}; ?>
                 </div>
+                </form>
+                
 
             </div>
         </div>
@@ -314,17 +402,20 @@ for($i=1; $i<=3; $i++)
 
 <!-- JavaScript ;-; -->
 <script>
-// Salva a posição antes do reload
-window.addEventListener("beforeunload", function() {
-    sessionStorage.setItem("scrollPosition", window.scrollY);
+// Salvar posição do scroll antes de sair ou recarregar a página
+window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('scrollPos', window.scrollY);
 });
 
-// Restaura a posição após reload
-window.addEventListener("load", function() {
-    const scrollPos = sessionStorage.getItem("scrollPosition");
+// Restaurar posição do scroll ao carregar a página
+window.addEventListener('load', () => {
+    const scrollPos = sessionStorage.getItem('scrollPos');
     if (scrollPos) {
-        window.scrollTo(0, parseInt(scrollPos));
-        sessionStorage.removeItem("scrollPosition");
+        window.scrollTo({
+    top: parseInt(scrollPos),
+    left: 0,
+    behavior: "auto" // <- sem efeito de descida
+});
     }
 });
 </script>

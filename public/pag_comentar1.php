@@ -48,7 +48,7 @@ $_SESSION['Img_Perfil'] = null;
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="pag_principal.php">✈ FlyWay</a>
+    <a class="navbar-brand fw-bold" href="pag_principal.php"">✈ FlyWay</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -143,6 +143,7 @@ $_SESSION['Img_Perfil'] = null;
 <?php if ($mostrarPopup_Comentado): ?>
   <script>
       alert("comentario feito com sucesso");
+      location.href='pag_principal.php';
   </script>
 <?php endif; ?>
 </body>

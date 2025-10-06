@@ -143,25 +143,8 @@ $_SESSION['Img_Perfil'] = null;
 <?php if ($mostrarPopup_Comentado): ?>
   <script>
       alert("comentario feito com sucesso");
+      location.href='pag_principal.php';
   </script>
 <?php endif; ?>
 </body>
 </html>
-
-<!-- Codigo para salvar o local que tava antes de dar update -->
-<!-- JavaScript ;-; -->
-
-<script>
-// Salva a posição do scroll ao sair da página
-window.onbeforeunload = function() {
-    sessionStorage.setItem("scrollPos", window.scrollY);
-};
-
-// Quando carregar de novo, volta para onde parou
-window.onload = function() {
-    let scrollPos = sessionStorage.getItem("scrollPos");
-    if (scrollPos !== null) {
-        window.scrollTo(0, scrollPos);
-    }
-};
-</script>
