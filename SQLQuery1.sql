@@ -45,6 +45,26 @@ CREATE TABLE Likes
 	FOREIGN KEY (Like_Post_KEY) REFERENCES Posts(Post_ID)
 );
 
+CREATE TABLE Chats
+(
+	Chat_ID int identity (1,1) PRIMARY KEY,
+	Chat_User_1_KEY int,
+	Chat_User_2_KEY int,
+	FOREIGN KEY (Chat_User_1_KEY) REFERENCES Usuarios(Usuario_ID),
+	FOREIGN KEY (Chat_User_2_KEY) REFERENCES Usuarios(Usuario_ID)
+);
+
+CREATE TABLE Mensagens
+(
+	mensagem_ID int identity (1,1) PRIMARY KEY,
+	mensagem_Texto VARCHAR(300),
+	mensagem_User_KEY int,
+	mensagem_Chat_KEY int,
+	FOREIGN KEY (mensagem_User_KEY) REFERENCES Usuarios(Usuario_ID),
+	FOREIGN KEY (mensagem_Chat_KEY) REFERENCES Chats(Chat_ID)
+);
+
+
 ALTER TABLE Usuarios
 ADD CONSTRAINT CHK_Usuario_Telefone
 CHECK (
@@ -57,13 +77,16 @@ SELECT * FROM Usuarios;
 SELECT * FROM Posts;
 SELECT * FROM Comentarios;
 SELECT * FROM Likes;
+SELECT * FROM Chats
+SELECT * FROM Mensagens
 
 
 DELETE FROM Likes;
 DELETE FROM Comentarios;
 DELETE FROM Posts;
 DELETE FROM Usuarios;
-
+DELETE FROM Chats;
+DELETE FROM Mensagens;
 
 SELECT 
     Post_ID,

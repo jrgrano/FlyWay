@@ -103,14 +103,14 @@ $_SESSION['Img_Perfil'] = null;
 
             <!-- Não entrar nas configs se não estiver logado -->
             <?php if (!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?>
-            <li><a class="dropdown-item" href="pag_login.php">Fazer login</a></li>
+            <li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li>
             <?php endif; ?>
             <?php if($_SESSION['ID'] !== null): ?>
             <li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li>
             <?php endif; ?>
             
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="logout.php">Sair</a></li>
+            <li><a class="dropdown-item text-danger" href="pag_logout.php">Sair</a></li>
           </ul>
         </li>
       </ul>

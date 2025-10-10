@@ -110,7 +110,7 @@ $_SESSION['Img_Perfil'] = null;
             <?php endif; ?>
             
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="logout.php">Sair</a></li>
+            <li><a class="dropdown-item text-danger" href="pag_logout.php">Sair</a></li>
           </ul>
         </li>
       </ul>

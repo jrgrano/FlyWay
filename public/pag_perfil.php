@@ -1,60 +1,56 @@
 <?php
 session_start();
 include 'config.php';
-
-$mostrarPopup_Comentado = false;
-
-if (isset($_POST['submit']))
-    {
-        $texto = $_POST['Texto'];
-        $autor = $_SESSION['ID'];
-        $Post = $_SESSION['Post_2_ID'];
-
-        $sql = "INSERT INTO Comentarios (Comentario_Texto, Comentario_Usuario_KEY, Comentario_post_KEY)
-        VALUES ('$texto', '$autor', '$Post')";
-
-        $stmt = sqlsrv_query($conn, $sql);
-
-        if ($stmt === false)
-        {
-        die(print_r(sqlsrv_errors(), true));
-        }
-        else
-        {
-        $mostrarPopup_Comentado = true;
-        }
-    }
 ?>
-
-<!-- só para não dar erro-->
-<?php if (!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?>
-<?php
-$_SESSION['Email'] = null;
-$_SESSION['senha'] = null;
-$_SESSION['pagina'] = 0;
-$_SESSION['ID'] = null;
-$_SESSION['Nome'] = null;
-$_SESSION['Img_Perfil'] = null;   
-?>    
-<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Fazer uma Postagem</title>
+  <title>Página de Perfil</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .profile-card {
+      max-width: 700px;
+      margin: 30px auto;
+    }
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #0d6efd;
+    }
+    .profile-header {
+      background-color: #0d6efd;
+      color: white;
+      padding: 20px;
+      border-radius: 10px 10px 0 0;
+      text-align: center;
+    }
+    .profile-body {
+      padding: 20px;
+      background-color: white;
+      border-radius: 0 0 10px 10px;
+    }
+    .post-section {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="pag_principal.php">✈ FlyWay</a>
+    <a class="navbar-brand fw-bold" href="#">✈ FlyWay</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarContent">
-      <!-- Links principais -->
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="pag_principal.php">Início</a>
@@ -72,20 +68,11 @@ $_SESSION['Img_Perfil'] = null;
         </li>
       </ul>
 
-      <!-- Pesquisa -->
-      <form class="d-flex me-3" role="search">
-        <input class="form-control me-2" type="search" placeholder="Pesquisar" aria-label="Search">
-        <button class="btn btn-outline-light" type="submit">Buscar</button>
-      </form>
-
-      <!-- Usuário -->
       <ul class="navbar-nav">
         <li class="nav-item dropdown d-flex align-items-center">
           <?php
           $img = $_SESSION['Img_Perfil'] ?? null;
-          if ($img) {
-              $imgBase64 = base64_encode($img);
-          }
+          if ($img) $imgBase64 = base64_encode($img);
           ?>
           <?php if ($img): ?>
             <img src="data:image/png;base64,<?= $imgBase64 ?>" 
@@ -100,15 +87,7 @@ $_SESSION['Img_Perfil'] = null;
             <li class="dropdown-item-text">
               <small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small>
             </li>
-
-            <!-- Não entrar nas configs se não estiver logado -->
-            <?php if (!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?>
-            <li><a class="dropdown-item" href="pag_login.php">Fazer login</a></li>
-            <?php endif; ?>
-            <?php if($_SESSION['ID'] !== null): ?>
             <li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li>
-            <?php endif; ?>
-            
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="pag_logout.php">Sair</a></li>
           </ul>
@@ -117,34 +96,55 @@ $_SESSION['Img_Perfil'] = null;
     </div>
   </div>
 </nav>
-<!-- Fim da nav bar -->
 
-  <h1>
-    Comentar:
-  </h1>
+<?php
+$usuario_id = $_GET['id'] ?? null;
+
+$sql_User = "SELECT Usuario_Nome, Usuario_img_Perfil FROM Usuarios WHERE Usuario_ID = $usuario_id;";
+$smt_User = sqlsrv_query($conn, $sql_User);
+if ($smt_User === false) die(print_r(sqlsrv_errors(), true));
+
+$Dados = sqlsrv_fetch_array($smt_User, SQLSRV_FETCH_ASSOC);
+
+if ($Dados) {
+    $nome = $Dados['Usuario_Nome'];
+    $imgPerfil = $Dados['Usuario_img_Perfil'];
+}
+?>
+
+<div class="profile-card shadow">
+  <div class="profile-header">
+    <img src="data:image/png;base64,<?= base64_encode($imgPerfil ?? '') ?>" alt="Foto de Perfil" class="profile-img mb-3">
+    <h2 class="fw-bold"><?= $nome ?? 'Usuário' ?></h2>
+    <p>ID: <?= $usuario_id ?></p>
+
+      <?php if($_SESSION['ID'] != $usuario_id): ?>
+      <!-- Botão de Chat -->
+      <a href="pag_chat.php?id=<?= $usuario_id ?>" class="btn btn-success mt-2">Chat</a>
+        </div>
+        <div class="profile-body">
+        <h5>Posts já feitos:</h5>
+      <div class="post-section">
+      <?php endif; ?>
+
+      <?php if($_SESSION['ID'] == $usuario_id): ?>
+      <!-- Botão de Chat -->
+      <a href="pag_configUsuario.php" class="btn btn-success mt-2">Esse é seu perfil</a>
+        </div>
+        <div class="profile-body">
+        <h5>Posts já feitos:</h5>
+      <div class="post-section">
+      <?php endif; ?>
 
 
-  <form method="post" enctype="multipart/form-data" class="mt-4">
 
-    <label>Texto do post (200max)</label>
-    <br>
-    <textarea id="inpTexto" name="Texto" placeholder="Escreva seu texto aqui..."
-              style="width: 300px; height: 150px; resize: vertical;"
-              maxlength="200" required></textarea>
-    <br>
-    <br>
 
-    <button name="submit" type="submit">Postar</button>
-  </form>
 
-  
+      <p class="text-muted">Nenhum post encontrado.</p>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<?php if ($mostrarPopup_Comentado): ?>
-  <script>
-      alert("comentario feito com sucesso");
-      location.href='pag_principal.php';
-  </script>
-<?php endif; ?>
 </body>
 </html>
