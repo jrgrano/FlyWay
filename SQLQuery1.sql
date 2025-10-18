@@ -80,13 +80,12 @@ SELECT * FROM Likes;
 SELECT * FROM Chats
 SELECT * FROM Mensagens
 
-
 DELETE FROM Likes;
 DELETE FROM Comentarios;
 DELETE FROM Posts;
-DELETE FROM Usuarios;
-DELETE FROM Chats;
 DELETE FROM Mensagens;
+DELETE FROM Chats;
+DELETE FROM Usuarios;
 
 SELECT 
     Post_ID,
@@ -121,3 +120,13 @@ GROUP BY
 ORDER BY p.Post_Data DESC
 OFFSET 1 ROWS  -- aqui você coloca o offset desejado
 FETCH NEXT 1 ROW ONLY;
+
+SELECT
+m.mensagem_Texto,
+u.Usuario_Nome,
+m.mensagem_User_KEY
+FROM Mensagens m
+INNER JOIN Usuarios u
+ON m.mensagem_User_KEY = u.Usuario_ID
+WHERE m.mensagem_Chat_KEY = 1
+ORDER BY m.mensagem_ID ASC

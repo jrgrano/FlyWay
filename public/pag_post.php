@@ -5,7 +5,7 @@ include 'config.php';
 // --------------------
 // PROCESSAR LIKES ANTES DE QUALQUER HTML
 // --------------------
-for($i=1; $i<=3; $i++) {
+for($i=1; $i<=1; $i++) {
     if(isset($_POST["Like$i"])) {
         $LikeV = ($_POST["Like$i"] == "Up$i") ? 1 : 0;
         $DisLikeV = ($_POST["Like$i"] == "Donw$i") ? 1 : 0;
@@ -62,23 +62,26 @@ $post3_offset = $paginaAtual + 2;
 // --------------------
 // BUSCAR POSTS
 // --------------------
-for($i=1; $i<=3; $i++) {
+for($i=1; $i<=1; $i++) {
     $offset = ${"post{$i}_offset"};
-    $sql = "SELECT 
-        p.Post_ID, p.Post_Titulo, p.Post_Foto, p.Post_Texto, p.Post_Data,
-        u.Usuario_ID, u.Usuario_Nome, u.Usuario_img_Perfil,
-        ISNULL(SUM(CAST(l.Like_UP AS INT)), 0) AS TotalLikes,
-        ISNULL(SUM(CAST(l.Like_Donw AS INT)), 0) AS TotalDislikes
-        FROM Posts p
-        INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
-        LEFT JOIN Likes l ON p.Post_ID = l.Like_Post_KEY
-        GROUP BY p.Post_ID, p.Post_Titulo, p.Post_Foto, p.Post_Texto, p.Post_Data,
-                 u.Usuario_ID, u.Usuario_Nome, u.Usuario_img_Perfil
-        ORDER BY p.Post_Data DESC
-        OFFSET $offset ROWS FETCH NEXT 1 ROW ONLY;";
+    $post_id = $_GET['id'] ?? null; // ou qualquer variável que tenha o ID do post
 
-    $stmt = sqlsrv_query($conn, $sql);
+if ($post_id) {
+    $sql = "SELECT 
+                p.Post_ID, p.Post_Titulo, p.Post_Foto, p.Post_Texto, p.Post_Data,
+                u.Usuario_ID, u.Usuario_Nome, u.Usuario_img_Perfil,
+                ISNULL(SUM(CAST(l.Like_UP AS INT)), 0) AS TotalLikes,
+                ISNULL(SUM(CAST(l.Like_Donw AS INT)), 0) AS TotalDislikes
+            FROM Posts p
+            INNER JOIN Usuarios u ON p.Post_Usuario_KEY = u.Usuario_ID
+            LEFT JOIN Likes l ON p.Post_ID = l.Like_Post_KEY
+            WHERE p.Post_ID = ?
+            GROUP BY p.Post_ID, p.Post_Titulo, p.Post_Foto, p.Post_Texto, p.Post_Data,
+                     u.Usuario_ID, u.Usuario_Nome, u.Usuario_img_Perfil";
+
+    $stmt = sqlsrv_query($conn, $sql, [$post_id]);
     if ($stmt === false) die(print_r(sqlsrv_errors(), true));
+}
 
     $Dados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
     if ($Dados) {
@@ -151,13 +154,13 @@ html { scroll-behavior:auto !important; }
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="#">✈ FlyWay</a>
+    <a class="navbar-brand fw-bold" href="pag_principal.php">✈ FlyWay</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item"><a class="nav-link active" href="#">Início</a></li>
+        <li class="nav-item"><a class="nav-link active" href="pag_principal.php">Início</a></li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Mais</a>
           <ul class="dropdown-menu">
@@ -195,7 +198,7 @@ html { scroll-behavior:auto !important; }
 <br>
 
 <!-- LOOP DE POSTS -->
-<?php for($i=1; $i<=3; $i++): ?>
+<?php for($i=1; $i<=1; $i++): ?>
     <?php if(${"mostrarPost_$i"}): ?>
     <div class="card post-card shadow card-clickable" 
          onclick="window.location='pag_post.php?id=<?= ${"post_id$i"} ?>';">
@@ -282,22 +285,6 @@ html { scroll-behavior:auto !important; }
 window.addEventListener('beforeunload',()=>{ sessionStorage.setItem('scrollPos',window.scrollY); });
 window.addEventListener('load',()=>{ const pos=sessionStorage.getItem('scrollPos'); if(pos) window.scrollTo({top:parseInt(pos),left:0,behavior:"auto"}); });
 </script>
-
-<!-- Botões de navegação de posts -->
-<form method="post" class="d-flex justify-content-center gap-2 my-3">
-    <button type="submit" name="mudarPg" value="voltar" class="btn btn-danger">Voltar</button>
-    <button type="submit" name="mudarPg" value="proximo" class="btn btn-success">Próximo</button>
-</form>
-
-<?php if($_SESSION['ID'] !== null): ?>
-<form class="d-flex justify-content-center my-3">
-    <a href="pag_postagem.php" class="btn btn-primary">Fazer uma nova postagem +</a>
-</form>
-<?php else: ?>
-<form class="d-flex justify-content-center my-3">
-    <a href="pag_login_cadastro.php" class="btn btn-secondary">Fazer login para postar</a>
-</form>
-<?php endif; ?>
 
 </body>
 </html>

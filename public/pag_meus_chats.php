@@ -1,51 +1,48 @@
 <?php
 session_start();
 include 'config.php';
-
-$mostrarPopup_Comentado = false;
-
-if (isset($_POST['submit']))
-    {
-        $texto = $_POST['Texto'];
-        $autor = $_SESSION['ID'];
-        $Post = $_SESSION['Post_2_ID'];
-
-        $sql = "INSERT INTO Comentarios (Comentario_Texto, Comentario_Usuario_KEY, Comentario_post_KEY)
-        VALUES ('$texto', '$autor', '$Post')";
-
-        $stmt = sqlsrv_query($conn, $sql);
-
-        if ($stmt === false)
-        {
-        die(print_r(sqlsrv_errors(), true));
-        }
-        else
-        {
-        $mostrarPopup_Comentado = true;
-        }
-    }
 ?>
-
-<!-- só para não dar erro-->
-<?php if (!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?>
-<?php
-$_SESSION['Email'] = null;
-$_SESSION['senha'] = null;
-$_SESSION['pagina'] = 0;
-$_SESSION['ID'] = null;
-$_SESSION['Nome'] = null;
-$_SESSION['Img_Perfil'] = null;   
-?>    
-<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Fazer uma Postagem</title>
+  <title>Página de Perfil</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .profile-card {
+      max-width: 700px;
+      margin: 30px auto;
+    }
+    .profile-img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 3px solid #0d6efd;
+    }
+    .profile-header {
+      background-color: #0d6efd;
+      color: white;
+      padding: 20px;
+      border-radius: 10px 10px 0 0;
+      text-align: center;
+    }
+    .profile-body {
+      padding: 20px;
+      background-color: white;
+      border-radius: 0 0 10px 10px;
+    }
+    .post-section {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="pag_principal.php">✈ FlyWay</a>
@@ -89,34 +86,6 @@ $_SESSION['Img_Perfil'] = null;
     </div>
   </div>
 </nav>
-<!-- Fim da nav bar -->
-
-  <h1>
-    Comentar:
-  </h1>
-
-
-  <form method="post" enctype="multipart/form-data" class="mt-4">
-
-    <label>Texto do post (200max)</label>
-    <br>
-    <textarea id="inpTexto" name="Texto" placeholder="Escreva seu texto aqui..."
-              style="width: 300px; height: 150px; resize: vertical;"
-              maxlength="200" required></textarea>
-    <br>
-    <br>
-
-    <button name="submit" type="submit">Postar</button>
-  </form>
-
-  
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<?php if ($mostrarPopup_Comentado): ?>
-  <script>
-      alert("comentario feito com sucesso");
-      location.href='pag_principal.php';
-  </script>
-<?php endif; ?>
 </body>
 </html>

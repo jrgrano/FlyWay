@@ -75,12 +75,12 @@ if(isset($_FILES['Arquivo_Img']) && !empty($_FILES['Arquivo_Img']))
       <p><strong>Conta:</strong> <?php echo $_SESSION['Nome']; ?></p>
 
       <form method="post" enctype="multipart/form-data" class="mt-4">
-        <div class="mb-3 text-start">
-          <label for="Arquivo_Img" class="form-label">Selecione o arquivo (Máximo: 20MB)</label>
-          <input name="Arquivo_Img" type="file" class="form-control" id="Arquivo_Img">
-        </div>
-        <button name="Upload" type="submit" class="btn btn-primary">Enviar arquivo</button>
-      </form>
+    <div class="mb-3 text-start">
+      <label for="Arquivo_Img" class="form-label">Selecione o arquivo (Máximo: 20MB)</label>
+      <input name="Arquivo_Img" type="file" class="form-control" id="Arquivo_Img" required>
+    </div>
+    <button name="Upload" type="submit" class="btn btn-primary">Enviar arquivo</button>
+</form>
     </div>
   </div>
 </div>
