@@ -76,7 +76,7 @@ $_SESSION['Img_Perfil'] = null;
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 

@@ -182,7 +182,7 @@ html { scroll-behavior:auto !important; }
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 
@@ -255,7 +255,7 @@ html { scroll-behavior:auto !important; }
                 <?php if($_SESSION['ID']!==null): ?>
                     <a href="pag_comentar<?= $i ?>.php" class="btn btn-sm btn-primary mt-auto">Comentar</a>
                 <?php else: ?>
-                    <a href="pag_login_cadastro.php" class="btn btn-sm btn-secondary mt-auto">Fazer login</a>
+                    <a href="index.php" class="btn btn-sm btn-secondary mt-auto">Fazer login</a>
                 <?php endif; ?>
             </div>
         </div>

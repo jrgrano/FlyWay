@@ -73,7 +73,7 @@ include 'config.php';
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 
@@ -89,16 +89,24 @@ include 'config.php';
 
 <?php
 $usuario_id = $_GET['id'] ?? null;
+$nome = 'Usuário não encontrado';
+$imgPerfil = null;
 
-$sql_User = "SELECT Usuario_Nome, Usuario_img_Perfil FROM Usuarios WHERE Usuario_ID = $usuario_id;";
-$smt_User = sqlsrv_query($conn, $sql_User);
-if ($smt_User === false) die(print_r(sqlsrv_errors(), true));
+if ($usuario_id && is_numeric($usuario_id)) { // Adicionada verificação de segurança
+    $sql_User = "SELECT Usuario_Nome, Usuario_img_Perfil FROM Usuarios WHERE Usuario_ID = ?;";
+    $params_User = array($usuario_id);
+    $stmt_User = sqlsrv_query($conn, $sql_User, $params_User);
 
-$Dados = sqlsrv_fetch_array($smt_User, SQLSRV_FETCH_ASSOC);
+    if ($stmt_User === false) {
+        die(print_r(sqlsrv_errors(), true));
+    }
 
-if ($Dados) {
-    $nome = $Dados['Usuario_Nome'];
-    $imgPerfil = $Dados['Usuario_img_Perfil'];
+    $Dados = sqlsrv_fetch_array($stmt_User, SQLSRV_FETCH_ASSOC);
+
+    if ($Dados) {
+        $nome = $Dados['Usuario_Nome'];
+        $imgPerfil = $Dados['Usuario_img_Perfil'];
+    }
 }
 ?>
 
@@ -128,18 +136,20 @@ if ($Dados) {
 
 
       <?php
-      
-        $SqlPostagens = "SELECT Post_ID, Post_Titulo FROM Posts WHERE Post_Usuario_KEY = $usuario_id";
-
-        $SmtPostagens = sqlsrv_query($conn, $SqlPostagens);
-
         $postagens = [];
+        if ($usuario_id && is_numeric($usuario_id)) {
+            $sqlPostagens = "SELECT Post_ID, Post_Titulo FROM Posts WHERE Post_Usuario_KEY = ? ORDER BY Post_Data DESC";
+            $paramsPostagens = array($usuario_id);
+            $stmtPostagens = sqlsrv_query($conn, $sqlPostagens, $paramsPostagens);
 
-        while ($row = sqlsrv_fetch_array($SmtPostagens, SQLSRV_FETCH_ASSOC))
-          {
-          $postagens[] = $row;
-          }
+            if ($stmtPostagens === false) {
+                die(print_r(sqlsrv_errors(), true));
+            }
 
+            while ($row = sqlsrv_fetch_array($stmtPostagens, SQLSRV_FETCH_ASSOC)) {
+                $postagens[] = $row;
+            }
+        }
       ?>
 
       <?php foreach($postagens as $post): ?>

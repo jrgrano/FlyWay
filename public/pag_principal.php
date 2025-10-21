@@ -179,7 +179,7 @@ html { scroll-behavior:auto !important; }
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 
@@ -224,12 +224,19 @@ html { scroll-behavior:auto !important; }
                     if($_POST["mudarComent$i"] == "Passar$i") { $selc++; $valorcomen +=3; }
                     elseif($_POST["mudarComent$i"] == "Voltar$i") { if($selc>1){$selc--; $valorcomen-=3;} }
                 }
+// 1. Obtenha o ID do post de forma segura
+                $current_post_id = ${"post_id$i"};
+
+                // 2. Use '?' como placeholders para segurança (SQL Injection)
                 $sqlComent = "SELECT c.Comentario_ID, c.Comentario_Texto, u.Usuario_Nome, u.Usuario_img_Perfil
                               FROM Comentarios c
                               INNER JOIN Usuarios u ON c.Comentario_Usuario_KEY = u.Usuario_ID
-                              WHERE c.Comentario_post_KEY = ${"post_id$i"}
-                              ORDER BY c.Comentario_ID DESC OFFSET $valorcomen ROWS FETCH NEXT 3 ROWS ONLY;";
-                $stmt_Comen = sqlsrv_query($conn, $sqlComent);
+                              WHERE c.Comentario_post_KEY = ?
+                              ORDER BY c.Comentario_ID DESC OFFSET ? ROWS FETCH NEXT 3 ROWS ONLY;";
+                
+                // 3. Passe os parâmetros de forma segura
+                $params_coment = [$current_post_id, $valorcomen];
+                $stmt_Comen = sqlsrv_query($conn, $sqlComent, $params_coment);
                 $comentarios = [];
                 if($stmt_Comen){ while($row = sqlsrv_fetch_array($stmt_Comen, SQLSRV_FETCH_ASSOC)){$comentarios[]=$row;} }
                 ?>
@@ -252,7 +259,7 @@ html { scroll-behavior:auto !important; }
                 <?php if($_SESSION['ID']!==null): ?>
                     <a href="pag_comentar<?= $i ?>.php" class="btn btn-sm btn-primary mt-auto">Comentar</a>
                 <?php else: ?>
-                    <a href="pag_login_cadastro.php" class="btn btn-sm btn-secondary mt-auto">Fazer login</a>
+                    <a href="index.php" class="btn btn-sm btn-secondary mt-auto">Fazer login</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -295,7 +302,7 @@ window.addEventListener('load',()=>{ const pos=sessionStorage.getItem('scrollPos
 </form>
 <?php else: ?>
 <form class="d-flex justify-content-center my-3">
-    <a href="pag_login_cadastro.php" class="btn btn-secondary">Fazer login para postar</a>
+    <a href="index.php" class="btn btn-secondary">Fazer login para postar</a>
 </form>
 <?php endif; ?>
 

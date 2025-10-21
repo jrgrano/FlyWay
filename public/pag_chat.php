@@ -3,44 +3,60 @@ session_start();
 include 'config.php';
 
 $usuario_id = $_GET['id'] ?? null;
+$my_id = $_SESSION['ID'] ?? null;
 
-//Buscar um chat já existente
+if (!$usuario_id || !$my_id) {
+    die("Acesso negado.");
+}
+
+// 1. Buscar um chat já existente (DE FORMA SEGURA)
 $sqlBuscar = "SELECT Chat_ID FROM Chats WHERE 
-(Chat_User_1_KEY = $usuario_id
-OR
-Chat_User_1_KEY = '$_SESSION[ID]')
-AND
-(Chat_User_2_KEY = $usuario_id
-OR
-Chat_User_2_KEY = '$_SESSION[ID]')
- ;";
-
-$stmtBuscar = sqlsrv_query($conn, $sqlBuscar);
+                (Chat_User_1_KEY = ? AND Chat_User_2_KEY = ?)
+                OR 
+                (Chat_User_1_KEY = ? AND Chat_User_2_KEY = ?)";
+$paramsBuscar = [$usuario_id, $my_id, $my_id, $usuario_id];
+$stmtBuscar = sqlsrv_query($conn, $sqlBuscar, $paramsBuscar);
 if ($stmtBuscar === false) die(print_r(sqlsrv_errors(), true));
 
 $dados = sqlsrv_fetch_array($stmtBuscar, SQLSRV_FETCH_ASSOC);
-if ($dados)
-    {
+$id_do_Chat = null;
+
+if ($dados) {
     $id_do_Chat = $dados['Chat_ID'];
-    }
-
-else 
-    {
-    $sqlCriarChat = "INSERT INTO Chats (Chat_User_1_KEY, Chat_User_2_KEY) VALUES ('$usuario_id', '$_SESSION[ID]')";
-    $stmtCriarChat = sqlsrv_query($conn, $sqlCriarChat);
-    if ($stmtCriarChat === false) die(print_r(sqlsrv_errors(), true));
-    }
-
+} else {
+    // 2. Criar o chat (DE FORMA SEGURA) e OBTER O NOVO ID
+    // Usamos SCOPE_IDENTITY() para pegar o ID que acabou de ser criado
+    $sqlCriarChat = "INSERT INTO Chats (Chat_User_1_KEY, Chat_User_2_KEY) 
+                     VALUES (?, ?);
+                     SELECT SCOPE_IDENTITY() AS NewChatID;";
     
+    $paramsCriar = [$usuario_id, $my_id];
+    $stmtCriarChat = sqlsrv_query($conn, $sqlCriarChat, $paramsCriar);
+    if ($stmtCriarChat === false) die(print_r(sqlsrv_errors(), true));
 
+    // Avança para o resultado do SELECT SCOPE_IDENTITY()
+    sqlsrv_next_result($stmtCriarChat);
+    $newChat = sqlsrv_fetch_array($stmtCriarChat, SQLSRV_FETCH_ASSOC);
+    $id_do_Chat = $newChat['NewChatID'];
+}
 
-if(isset($_POST['mensagem']))
-    {
-        $mensagem = $_POST['mensagem'];
-        $sqlmessagem ="INSERT INTO Mensagens(mensagem_Texto, mensagem_User_KEY, mensagem_Chat_KEY) VALUES('$mensagem', '$_SESSION[ID]', '$id_do_Chat')";
-        $stmtmessagem = sqlsrv_query($conn, $sqlmessagem);
-    if ($stmtmessagem === false) die(print_r(sqlsrv_errors(), true));
+// 3. Inserir mensagem (DE FORMA SEGURA)
+if (isset($_POST['mensagem']) && !empty($_POST['mensagem'])) {
+    $mensagem = $_POST['mensagem'];
+    
+    // Verifique se o $id_do_Chat foi definido
+    if ($id_do_Chat) {
+        $sqlmessagem = "INSERT INTO Mensagens(mensagem_Texto, mensagem_User_KEY, mensagem_Chat_KEY) 
+                        VALUES(?, ?, ?)";
+        $paramsMsg = [$mensagem, $my_id, $id_do_Chat];
+        $stmtmessagem = sqlsrv_query($conn, $sqlmessagem, $paramsMsg);
+        if ($stmtmessagem === false) die(print_r(sqlsrv_errors(), true));
+        
+        // Redireciona para limpar o POST e evitar reenvio com F5
+        header("Location: pag_chat.php?id=" . $usuario_id);
+        exit;
     }
+}
 ?>
 
 <!DOCTYPE html>
@@ -144,7 +160,7 @@ if(isset($_POST['mensagem']))
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 

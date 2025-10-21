@@ -1,4 +1,5 @@
 <?php
+session_start();
 include 'config.php';
 
 if ($conn === false) {
@@ -7,78 +8,85 @@ if ($conn === false) {
 
 $mostrarPopup_emailnaoencontrado = false;
 $mostrarPopup_senhaerrada = false;
+$mostrarPopup_emailcadastrado = false;
 
-// -------- CADASTRO --------
+// -------- CADASTRO SEGURO --------
 if (isset($_POST['btn_cadastrar'])) {
-
-    $conteudoBinario = file_get_contents("imagens/Flyway.png");
-    $img = bin2hex($conteudoBinario);
-
-
     $email = $_POST['email'];
     $nome  = $_POST['nome'];
     $tel   = $_POST['tel'];
-    $senha = $_POST['senha']; 
+    $senha = $_POST['senha'];
 
-    $sql = "INSERT INTO Usuarios (Usuario_Email, Usuario_Nome, Usuario_Telefone, Usuario_Senha, Usuario_img_Perfil)
-        VALUES ('$email', '$nome', '$tel', '$senha', 0x$img)";
-
-    $stmt = sqlsrv_query($conn, $sql);
-
-    if ($stmt === false) {
-        die(print_r(sqlsrv_errors(), true));
+    // Verifica se o e-mail já existe
+    $sql_check = "SELECT Usuario_ID FROM Usuarios WHERE Usuario_Email = ?";
+    $params_check = array($email);
+    $stmt_check = sqlsrv_query($conn, $sql_check, $params_check);
+    if (sqlsrv_fetch($stmt_check)) {
+        $mostrarPopup_emailcadastrado = true;
     } else {
-        echo "<script>alert('Cadastro efetuado com sucesso');location.href='pag_login_cadastro.php'; </script>";
-        exit();
+        // Hash da senha
+        $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+
+        // Imagem padrão
+        $caminhoImagemPadrao = "imagens/Flyway.png";
+        $imagemBinaria = file_get_contents($caminhoImagemPadrao);
+
+        $sql = "INSERT INTO Usuarios (Usuario_Email, Usuario_Nome, Usuario_Telefone, Usuario_Senha, Usuario_img_Perfil)
+                VALUES (?, ?, ?, ?, ?)";
+        
+        $params = array(
+            $email, 
+            $nome, 
+            $tel, 
+            $senhaHash, 
+            array($imagemBinaria, SQLSRV_PARAM_IN, SQLSRV_PHPTYPE_STREAM(SQLSRV_ENC_BINARY))
+        );
+
+        $stmt = sqlsrv_query($conn, $sql, $params);
+
+        if ($stmt === false) {
+            die(print_r(sqlsrv_errors(), true));
+        } else {
+            echo "<script>alert('Cadastro efetuado com sucesso! Faça o login.');location.href='index.php'; </script>";
+            exit();
+        }
     }
 }
 
-// -------- LOGIN --------
-if (isset($_POST['btn_login']))
-  {
+// -------- LOGIN SEGURO --------
+if (isset($_POST['btn_login'])) {
+    $email = $_POST['email'];
+    $senha = $_POST['senha'];
 
-    if (!isset($_SESSION))
-    {
-      session_start();
-      $_SESSION['Email'] = $_POST['email'];
-      $_SESSION['senha'] = $_POST['senha'];
-      $_SESSION['pagina'] = 0;
+    $sql = "SELECT Usuario_ID, Usuario_Nome, Usuario_Senha, Usuario_img_Perfil FROM Usuarios WHERE Usuario_Email = ?";
+    $params = array($email);
+    $stmt = sqlsrv_query($conn, $sql, $params);
 
-      $sql = "SELECT Usuario_ID, Usuario_Email, Usuario_Nome, Usuario_Senha, Usuario_img_Perfil FROM Usuarios WHERE Usuario_Email = '$_SESSION[Email]'";
-      $stmt = sqlsrv_query($conn, $sql);
-
-      if ($stmt === false)
-      {
+    if ($stmt === false) {
         die(print_r(sqlsrv_errors(), true));
-      } 
-      else 
-      {
-        $Dados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-      
-        if ($Dados == 0)
-        {
-          $mostrarPopup_emailnaoencontrado = true;
+    } 
+    
+    $Dados = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+  
+    if ($Dados) {
+        // Verifica a senha usando password_verify
+        if (password_verify($senha, $Dados['Usuario_Senha'])) {
+            // Senha correta
+            $_SESSION['ID'] = $Dados['Usuario_ID'];
+            $_SESSION['Nome'] = $Dados['Usuario_Nome'];
+            $_SESSION['Img_Perfil'] = $Dados['Usuario_img_Perfil'];
+            $_SESSION['pagina'] = 0; // Reinicia a paginação
+            echo "<script>alert('Login efetuado com sucesso');location.href='pag_principal.php'; </script>";
+            exit();
+        } else {
+            // Senha incorreta
+            $mostrarPopup_senhaerrada = true;
         }
-
-        else   
-        {
-          if ($Dados['Usuario_Senha'] == $_SESSION['senha'])
-            {
-              $_SESSION['ID'] = $Dados['Usuario_ID'];
-              $_SESSION['Nome'] = $Dados['Usuario_Nome'];
-              $_SESSION['Img_Perfil'] = $Dados['Usuario_img_Perfil'];
-              echo "<script>alert('Login efetuado com sucesso');location.href='pag_principal.php'; </script>";
-            }
-          else
-            {
-              $mostrarPopup_senhaerrada = true;
-            }
-        }
-
-        
-      }
+    } else {
+        // E-mail não encontrado
+        $mostrarPopup_emailnaoencontrado = true;
     }
-  }
+}
 ?>
 
 <!doctype html>

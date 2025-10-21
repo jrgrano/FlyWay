@@ -1,42 +1,41 @@
 <?php
-// ... seu bloco PHP original (início) ...
 session_start();
 include 'config.php';
 
 $mostrarPopup_Postado = false;
 
-if (isset($_POST['submit']))
-{
-    // --- VERIFICAÇÃO DE ARQUIVO AQUI ---
-    // A CORREÇÃO CRÍTICA PARA EVITAR O FATAL ERROR ANTERIOR
+if (isset($_POST['submit'])) {
     if (!isset($_FILES['Arquivo_Img']) || $_FILES['Arquivo_Img']['error'] !== UPLOAD_ERR_OK) {
-        // Se o arquivo não foi enviado ou houve um erro, pare o processamento
-        // O "required" do HTML já deve pegar isso, mas a validação PHP é essencial
         echo '<script>alert("Erro: O arquivo de imagem é obrigatório ou houve um erro no upload.");</script>';
     } else {
         $titulo = $_POST['titulo'];
         $data = date('Y-m-d H:i:s');
-        $tag= $_POST['opcoes'];
+        $tag = $_POST['opcoes'];
         $texto = $_POST['Texto'];
         $autor = $_SESSION['ID'];
-
-        $conteudoBinario = file_get_contents($_FILES['Arquivo_Img']['tmp_name']);
-        $img = bin2hex($conteudoBinario);
+        
+        // Caminho temporário do arquivo de imagem
+        $caminhoImagem = $_FILES['Arquivo_Img']['tmp_name'];
+        $imagemBinaria = file_get_contents($caminhoImagem);
 
         $sql = "INSERT INTO Posts (Post_Titulo, Post_Data, Post_Tag, Post_Foto, Post_Texto, Post_Usuario_KEY)
-        VALUES (?, CONVERT(DATETIME, ?, 120), ?, 0x$img, ?, ?)";
+                VALUES (?, CONVERT(DATETIME, ?, 120), ?, ?, ?, ?)";
 
-        $Parametros = array($titulo, $data, $tag, $texto, $autor);
+        $params = array(
+            $titulo, 
+            $data, 
+            $tag, 
+            array($imagemBinaria, SQLSRV_PARAM_IN, SQLSRV_PHPTYPE_STREAM(SQLSRV_ENC_BINARY)),
+            $texto, 
+            $autor
+        );
 
-        $stmt = sqlsrv_query($conn, $sql, $Parametros);
+        $stmt = sqlsrv_query($conn, $sql, $params);
 
-        if ($stmt === false)
-        {
-        die(print_r(sqlsrv_errors(), true));
-        }
-        else
-        {
-        $mostrarPopup_Postado = true;
+        if ($stmt === false) {
+            die(print_r(sqlsrv_errors(), true));
+        } else {
+            $mostrarPopup_Postado = true;
         }
     }
 }
@@ -94,7 +93,7 @@ if (isset($_POST['submit']))
           <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown"><?= $_SESSION['Nome'] ?? 'Convidado'; ?></a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li class="dropdown-item-text"><small><strong>ID:</strong> <?= $_SESSION['ID'] ?? '-'; ?></small></li>
-            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="pag_login_cadastro.php">Fazer login</a></li><?php endif; ?>
+            <?php if(!isset($_SESSION['ID']) || $_SESSION['ID'] === null): ?><li><a class="dropdown-item" href="index.php">Fazer login</a></li><?php endif; ?>
 
             <?php if($_SESSION['ID'] !== null): ?><li><a class="dropdown-item" href="pag_configUsuario.php">Configurações</a></li><?php endif; ?>
 

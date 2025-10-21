@@ -1,6 +1,6 @@
 <?php
-include 'config.php';
 session_start();
+include 'config.php';
 
 $postID = $_POST['postID'] ?? null;
 $tipo = $_POST['tipo'] ?? null;

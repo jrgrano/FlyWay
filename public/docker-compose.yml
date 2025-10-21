@@ -1,0 +1,30 @@
+
+services:
+  mssql-express:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_express
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Welcome@2025
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+
+  app:
+    # Constrói a imagem a partir do Dockerfile na mesma pasta
+    build: .
+    container_name: php_apache_server
+    volumes:
+      # Mapeia sua pasta 'public' para a pasta do servidor web no container
+      - /var/lib/docker/volumes/portainer_data/_data/compose/30/:/var/www/html/
+    ports:
+      - "7000:80"
+    depends_on:
+      - mssql-express
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
